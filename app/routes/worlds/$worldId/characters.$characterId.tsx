@@ -1,11 +1,11 @@
 import { useParams } from "@remix-run/react"
 import clsx from "clsx"
 import { ImagePlus, Trash } from "lucide-react"
-import { useId, type ReactNode } from "react"
 import { ClockInput } from "~/ui/clock-input"
 import { EmptyState } from "~/ui/empty-state"
+import { Field } from "~/ui/field"
 import { NotFoundMessage } from "~/ui/not-found-message"
-import { buttonStyle, inputStyle, labelStyle, panelStyle } from "~/ui/styles"
+import { buttonStyle, inputStyle, panelStyle } from "~/ui/styles"
 import { useWorldState } from "~/world-state"
 import { DeleteCharacterButton } from "./delete-character"
 
@@ -57,32 +57,29 @@ export default function CharacterPage() {
           </div>
 
           <div className="flex flex-col justify-between gap-4">
-            <FieldLabel labelText="Name">
-              {(props) => (
-                <input
-                  {...props}
-                  className={inputStyle()}
-                  placeholder="What should we call you?"
-                  defaultValue={character.name}
-                />
-              )}
-            </FieldLabel>
-            <FieldLabel labelText="Reference Image">
-              {(props) => (
-                <input
-                  {...props}
-                  className={inputStyle()}
-                  type="url"
-                  placeholder="https://web.site/image.png"
-                  defaultValue={character.imageUrl ?? ""}
-                />
-              )}
-            </FieldLabel>
-            <Label labelText="Momentum">
+            <Field>
+              <Field.Label>Name</Field.Label>
+              <Field.Input
+                className={inputStyle()}
+                placeholder="What should we call you?"
+                defaultValue={character.name}
+              />
+            </Field>
+            <Field>
+              <Field.Label>Reference Image</Field.Label>
+              <Field.Input
+                className={inputStyle()}
+                type="url"
+                placeholder="https://web.site/image.png"
+                defaultValue={character.imageUrl ?? ""}
+              />
+            </Field>
+            <Field>
+              <Field.LabelText>Momentum</Field.LabelText>
               <div className={inputStyle({ interactive: false })}>
                 (momentum counter)
               </div>
-            </Label>
+            </Field>
           </div>
 
           <div className="flex flex-col gap-4">
@@ -97,16 +94,14 @@ export default function CharacterPage() {
                 <ClockInput value={2} max={4} onChange={() => {}} />
               </div>
             </section>
-            <FieldLabel labelText="Condition">
-              {(props) => (
-                <input
-                  {...props}
-                  className={inputStyle()}
-                  placeholder="How are you doing?"
-                  defaultValue={character.condition}
-                />
-              )}
-            </FieldLabel>
+            <Field>
+              <Field.Label>Condition</Field.Label>
+              <Field.Input
+                className={inputStyle()}
+                placeholder="How are you doing?"
+                defaultValue={character.condition}
+              />
+            </Field>
           </div>
         </section>
         <hr className="border-white/10" />
@@ -123,30 +118,6 @@ export default function CharacterPage() {
           </DeleteCharacterButton>
         </section>
       </div>
-    </div>
-  )
-}
-
-function Label(props: { labelText: ReactNode; children: ReactNode }) {
-  return (
-    <div className="grid gap-1">
-      <div className={labelStyle()}>{props.labelText}</div>
-      <div>{props.children}</div>
-    </div>
-  )
-}
-
-function FieldLabel(props: {
-  labelText: ReactNode
-  children: (props: { id: string }) => ReactNode
-}) {
-  const id = useId()
-  return (
-    <div className="grid gap-1">
-      <label htmlFor={id} className={labelStyle()}>
-        {props.labelText}
-      </label>
-      <div>{props.children({ id })}</div>
     </div>
   )
 }
