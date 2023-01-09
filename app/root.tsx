@@ -1,13 +1,14 @@
 import { type ErrorBoundaryComponent, type MetaFunction } from "@remix-run/node"
 import {
+  type CatchBoundaryComponent,
   Links,
   LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  type ShouldReloadFunction,
   useLoaderData,
-  type CatchBoundaryComponent,
 } from "@remix-run/react"
 import backgroundImage from "./assets/bg_flipped.png"
 import favicon from "./assets/favicon.svg"
@@ -35,6 +36,8 @@ export const links = () => [
   { rel: "stylesheet", href: "/fonts/rubik/variable.css" },
   { rel: "icon", href: favicon },
 ]
+
+export const unstable_shouldReload: ShouldReloadFunction = () => false
 
 function Document({ children }: { children: React.ReactNode }) {
   return (
