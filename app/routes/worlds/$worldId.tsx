@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from "@remix-run/node"
+import { type LoaderArgs, type MetaFunction } from "@remix-run/node"
 import {
   NavLink,
   Outlet,
@@ -32,11 +32,7 @@ import { findSessionUser, getSession } from "~/auth.server"
 import { DeleteCharacterAction } from "~/characters/delete-character"
 import { db } from "~/db.server"
 import { raise } from "~/helpers/errors"
-import {
-  forbidden,
-  redirectBack,
-  unauthorized,
-} from "~/helpers/responses.server"
+import { forbidden, unauthorized } from "~/helpers/responses.server"
 import { getAppMeta } from "~/meta"
 import { serverAction } from "~/server-actions"
 import { LoadingSpinner } from "~/ui/loading"
@@ -263,7 +259,9 @@ function WorldCharacterList(props: { onItemClick?: undefined | (() => void) }) {
 
 function AddCharacterButton() {
   const world = useWorldState()
-  const fetcher = addCharacter.useFetcher()
+  const submit = addCharacter.useSubmit()
+  const isSubmitting = addCharacter.useSubmissions().length > 0
+
   return (
     <button
       type="button"
@@ -272,10 +270,10 @@ function AddCharacterButton() {
         background: "none",
         inactiveBorderColor: "transparent",
       })}
-      disabled={fetcher.state !== "idle"}
-      onClick={() => fetcher.submit({ worldId: world.id })}
+      disabled={isSubmitting}
+      onClick={() => submit({ worldId: world.id })}
     >
-      {fetcher.state === "idle" ? <Plus /> : <LoadingSpinner size={6} />}
+      {isSubmitting ? <LoadingSpinner size={6} /> : <Plus />}
     </button>
   )
 }
@@ -318,6 +316,7 @@ const addCharacter = serverAction(
       },
     })
 
-    return redirectBack(request)
+    const { redirect } = await import("@remix-run/node")
+    return redirect(`/worlds/${input.worldId}/characters/${character.id}`)
   },
 )

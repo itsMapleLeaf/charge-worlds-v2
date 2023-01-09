@@ -1,15 +1,9 @@
-import { useNavigate } from "@remix-run/react"
 import { Trash } from "lucide-react"
 import { type ReactNode } from "react"
 import { getSession } from "~/auth.server"
 import { db } from "~/db.server"
 import { raise } from "~/helpers/errors"
-import {
-  forbidden,
-  notFound,
-  redirectBack,
-  unauthorized,
-} from "~/helpers/responses.server"
+import { forbidden, notFound, unauthorized } from "~/helpers/responses.server"
 import { serverAction } from "~/server-actions"
 import { ConfirmModal } from "~/ui/confirm-modal"
 import { sendWorldPatch, useWorldState } from "~/world-state"
@@ -24,8 +18,7 @@ export function DeleteCharacterButton({
   className?: string
 }) {
   const world = useWorldState()
-  const fetcher = DeleteCharacterAction.useFetcher()
-  const navigate = useNavigate()
+  const submit = DeleteCharacterAction.useSubmit()
   return (
     <ConfirmModal
       title="Delete Character"
@@ -33,8 +26,7 @@ export function DeleteCharacterButton({
       confirmText={`Delete ${character.name}`}
       confirmIcon={<Trash />}
       onConfirm={() => {
-        navigate(`/worlds/${world.id}`)
-        fetcher.submit({ id: character.id, worldId: world.id })
+        submit({ id: character.id, worldId: world.id })
       }}
     >
       {(show) => (
@@ -91,6 +83,7 @@ export const DeleteCharacterAction = serverAction(
       },
     })
 
-    return redirectBack(request)
+    const { redirect } = await import("@remix-run/node")
+    return redirect(`/worlds/${input.worldId}`)
   },
 )

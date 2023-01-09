@@ -1,5 +1,10 @@
 import { type TypedResponse } from "@remix-run/node"
-import { useFetcher, useFetchers } from "@remix-run/react"
+import {
+  useFetcher,
+  useFetchers,
+  useSubmit,
+  useTransition,
+} from "@remix-run/react"
 import { type MaybePromise } from "./helpers/types"
 
 declare global {
@@ -27,6 +32,16 @@ export function serverAction<Input, Return>(
   const actionUrl = `/server-actions/${actionName}`
 
   return {
+    useSubmit: function useServerActionSubmit() {
+      const submit = useSubmit()
+      return (data: Input) => {
+        submit(
+          { data: JSON.stringify(data) },
+          { method: "post", action: actionUrl },
+        )
+      }
+    },
+
     useFetcher: function useServerActionFetcher() {
       const fetcher = useFetcher<Return>()
       return {
@@ -42,11 +57,12 @@ export function serverAction<Input, Return>(
     },
 
     useSubmissions: function useServerActionSubmissions() {
+      const transition = useTransition()
       const fetchers = useFetchers()
-      return fetchers.flatMap((fetcher) => {
-        if (fetcher.submission?.action !== actionUrl) return []
+      return [transition, ...fetchers].flatMap((state) => {
+        if (state.submission?.action !== actionUrl) return []
         return JSON.parse(
-          fetcher.submission.formData.get("data") as string,
+          state.submission.formData.get("data") as string,
         ) as Input
       })
     },
