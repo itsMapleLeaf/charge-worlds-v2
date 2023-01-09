@@ -3,7 +3,7 @@ import clsx from "clsx"
 import { ImagePlus, Trash } from "lucide-react"
 import { ClockInput } from "~/ui/clock-input"
 import { EmptyState } from "~/ui/empty-state"
-import { Field } from "~/ui/field"
+import { Field, FieldInput, FieldLabel, FieldLabelText } from "~/ui/field"
 import { NotFoundMessage } from "~/ui/not-found-message"
 import { buttonStyle, inputStyle, panelStyle } from "~/ui/styles"
 import { useWorldState } from "~/world-state"
@@ -58,16 +58,16 @@ export default function CharacterPage() {
 
           <div className="flex flex-col justify-between gap-4">
             <Field>
-              <Field.Label>Name</Field.Label>
-              <Field.Input
+              <FieldLabel>Name</FieldLabel>
+              <FieldInput
                 className={inputStyle()}
                 placeholder="What should we call you?"
                 defaultValue={character.name}
               />
             </Field>
             <Field>
-              <Field.Label>Reference Image</Field.Label>
-              <Field.Input
+              <FieldLabel>Reference Image</FieldLabel>
+              <FieldInput
                 className={inputStyle()}
                 type="url"
                 placeholder="https://web.site/image.png"
@@ -75,7 +75,7 @@ export default function CharacterPage() {
               />
             </Field>
             <Field>
-              <Field.LabelText>Momentum</Field.LabelText>
+              <FieldLabelText>Momentum</FieldLabelText>
               <div className={inputStyle({ interactive: false })}>
                 (momentum counter)
               </div>
@@ -95,8 +95,8 @@ export default function CharacterPage() {
               </div>
             </section>
             <Field>
-              <Field.Label>Condition</Field.Label>
-              <Field.Input
+              <FieldLabel>Condition</FieldLabel>
+              <FieldInput
                 className={inputStyle()}
                 placeholder="How are you doing?"
                 defaultValue={character.condition}

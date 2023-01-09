@@ -1,6 +1,5 @@
 import {
   createContext,
-  createElement,
   useContext,
   useId,
   type ComponentPropsWithoutRef,
@@ -21,26 +20,38 @@ export function Field(props: { children: ReactNode }) {
   )
 }
 
-Field.Label = function FieldLabel(
-  props: LabelHTMLAttributes<HTMLLabelElement>,
-) {
+export function FieldLabel(props: LabelHTMLAttributes<HTMLLabelElement>) {
   const { id } = useContext(Context)
   return <label {...props} htmlFor={id} className={labelStyle()} />
 }
 
-Field.LabelText = function FieldLabel(props: HTMLAttributes<HTMLDivElement>) {
+export function FieldLabelText(props: HTMLAttributes<HTMLDivElement>) {
   return <div {...props} className={labelStyle()} />
 }
 
-Field.Input = createFieldInput("input")
-Field.TextArea = createFieldInput("textarea")
-Field.Select = createFieldInput("select")
+export const FieldInput = createFieldInput(
+  "FieldInput",
+  (props: ComponentPropsWithoutRef<"input">) => <input {...props} />,
+)
+export const FieldTextArea = createFieldInput(
+  "FieldTextArea",
+  (props: ComponentPropsWithoutRef<"textarea">) => <textarea {...props} />,
+)
+export const FieldSelect = createFieldInput(
+  "FieldSelect",
+  (props: ComponentPropsWithoutRef<"select">) => <select {...props} />,
+)
 
-function createFieldInput<Tag extends keyof JSX.IntrinsicElements>(tag: Tag) {
-  function FieldInput(props: ComponentPropsWithoutRef<Tag>) {
+function createFieldInput<Props>(
+  name: string,
+  render: (props: Props & { id?: string | undefined }) => ReactNode,
+) {
+  function FieldInput(props: Props) {
     const { id } = useContext(Context)
-    return createElement(tag, { ...props, id })
+    return <>{render({ ...props, id })}</>
   }
-  FieldInput.displayName = `FieldInput(${tag})`
+
+  FieldInput.displayName = `FieldInput(${name})`
+
   return FieldInput
 }
