@@ -1,4 +1,4 @@
-import { notFound } from "~/helpers/responses"
+import { notFound } from "~/helpers/responses.server"
 import { getAppMeta } from "~/meta"
 import { NotFoundMessage } from "~/ui/not-found-message"
 

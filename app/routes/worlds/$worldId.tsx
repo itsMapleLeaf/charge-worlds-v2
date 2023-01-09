@@ -2,7 +2,6 @@ import type { LoaderArgs, MetaFunction } from "@remix-run/node"
 import {
   NavLink,
   Outlet,
-  useFetcher,
   useLoaderData,
   useParams,
   type ShouldReloadFunction,
@@ -29,13 +28,22 @@ import {
   SidebarOpen,
   Users,
 } from "lucide-react"
-import { findSessionUser } from "~/auth.server"
+import { findSessionUser, getSession } from "~/auth.server"
+import { db } from "~/db.server"
+import { raise } from "~/helpers/errors"
+import {
+  forbidden,
+  redirectBack,
+  unauthorized,
+} from "~/helpers/responses.server"
 import { getAppMeta } from "~/meta"
+import { serverAction } from "~/server-actions"
 import { LoadingSpinner } from "~/ui/loading"
 import { PageHeader } from "~/ui/page-header"
 import { buttonStyle, panelStyle } from "~/ui/styles"
 import {
   loadWorldState,
+  sendWorldPatch,
   useWorldState,
   WorldStateProvider,
 } from "~/world-state"
@@ -250,19 +258,62 @@ function WorldCharacterList(props: { onItemClick?: undefined | (() => void) }) {
 }
 
 function AddCharacterButton() {
-  const fetcher = useFetcher()
+  const world = useWorldState()
+  const fetcher = addCharacter.useFetcher()
   return (
-    <fetcher.Form method="post" action="add-character">
-      <button
-        title="Add character"
-        className={buttonStyle({
-          background: "none",
-          inactiveBorderColor: "transparent",
-        })}
-        disabled={fetcher.state !== "idle"}
-      >
-        {fetcher.state === "idle" ? <Plus /> : <LoadingSpinner size={6} />}
-      </button>
-    </fetcher.Form>
+    <button
+      type="button"
+      title="Add character"
+      className={buttonStyle({
+        background: "none",
+        inactiveBorderColor: "transparent",
+      })}
+      disabled={fetcher.state !== "idle"}
+      onClick={() => fetcher.submit({ worldId: world.id })}
+    >
+      {fetcher.state === "idle" ? <Plus /> : <LoadingSpinner size={6} />}
+    </button>
   )
 }
+
+const addCharacter = serverAction(
+  "add-character",
+  async (input: { worldId: string }, request) => {
+    const { sessionId } = (await getSession(request)) ?? raise(unauthorized())
+
+    const user = await db.user.findUnique({
+      where: { sessionId },
+      select: {
+        id: true,
+        memberships: {
+          where: { worldId: input.worldId },
+        },
+      },
+    })
+
+    if (!user?.memberships.length) {
+      throw forbidden()
+    }
+
+    const character = await db.$transaction(async (tx) => {
+      const count = await tx.character.count({
+        where: { worldId: input.worldId },
+      })
+      return await db.character.create({
+        data: {
+          name: `New Character ${count + 1}`,
+          worldId: input.worldId,
+          ownerId: user.id,
+        },
+      })
+    })
+
+    await sendWorldPatch(input.worldId, {
+      characters: {
+        $append: [character],
+      },
+    })
+
+    return redirectBack(request)
+  },
+)

@@ -6,7 +6,7 @@ import {
   useDialogState,
 } from "ariakit"
 import clsx from "clsx"
-import { X } from "lucide-react"
+import { Check, X } from "lucide-react"
 import { type ReactNode } from "react"
 import { buttonStyle, panelStyle } from "~/ui/styles"
 
@@ -14,6 +14,7 @@ export function ConfirmModal({
   title,
   body,
   confirmText,
+  confirmIcon = <Check />,
   cancelText = "Never Mind",
   onConfirm,
   children,
@@ -21,6 +22,7 @@ export function ConfirmModal({
   title: ReactNode
   body: ReactNode
   confirmText: ReactNode
+  confirmIcon?: ReactNode
   cancelText?: ReactNode
   onConfirm: () => void
   children: (show: () => void) => ReactNode
@@ -57,6 +59,7 @@ export function ConfirmModal({
               dialog.hide()
             }}
           >
+            {confirmIcon}
             {confirmText}
           </button>
         </div>

@@ -3,7 +3,7 @@ import type PusherClient from "pusher-js"
 import { createContext, useContext, useEffect, useState } from "react"
 import { db } from "./db.server"
 import { raise } from "./helpers/errors"
-import { notFound } from "./helpers/responses"
+import { notFound } from "./helpers/responses.server"
 import { applyPatch, type Patch } from "./patch"
 import { usePusher } from "./pusher-context"
 import { pusher } from "./pusher.server"
@@ -28,6 +28,7 @@ export async function loadWorldState(
   const world = await db.world.findUnique({
     where: { id: worldId },
     select: {
+      id: true,
       name: true,
       characters: {
         where: isAdmin ? {} : { hidden: true },
@@ -46,21 +47,19 @@ export async function loadWorldState(
 const worldChannel = (worldId: string) => {
   const channel = `world-${worldId}`
   return {
-    sendPatch(patch: Patch<WorldState>) {
-      pusher
-        .trigger(channel, "patch", patch)
-        .then((response) => {
-          if (response.status !== 200) {
-            console.error(
-              "Pusher response error",
-              response.status,
-              response.statusText,
-            )
-          }
-        })
-        .catch((error) => {
-          console.error("Pusher error", error)
-        })
+    async sendPatch(patch: Patch<WorldState>) {
+      try {
+        const response = await pusher.trigger(channel, "patch", patch)
+        if (response.status !== 200) {
+          console.error(
+            "Pusher response error",
+            response.status,
+            response.statusText,
+          )
+        }
+      } catch (error) {
+        console.error("Pusher error", error)
+      }
     },
 
     onPatch(
@@ -77,7 +76,7 @@ const worldChannel = (worldId: string) => {
 }
 
 export function sendWorldPatch(worldId: string, patch: Patch<WorldState>) {
-  worldChannel(worldId).sendPatch(patch)
+  return worldChannel(worldId).sendPatch(patch)
 }
 
 const Context = createContext<WorldState | undefined>(undefined)
