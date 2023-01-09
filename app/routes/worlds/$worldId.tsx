@@ -3,7 +3,6 @@ import {
   NavLink,
   Outlet,
   useLoaderData,
-  useParams,
   type ShouldReloadFunction,
 } from "@remix-run/react"
 import {
@@ -16,6 +15,7 @@ import {
   useTabState,
   type DisclosureState,
 } from "ariakit"
+import clsx from "clsx"
 import {
   Clock,
   Dices,
@@ -29,6 +29,7 @@ import {
   Users,
 } from "lucide-react"
 import { findSessionUser, getSession } from "~/auth.server"
+import { DeleteCharacterAction } from "~/characters/delete-character"
 import { db } from "~/db.server"
 import { raise } from "~/helpers/errors"
 import {
@@ -226,33 +227,36 @@ function WorldMenu(props: { dialogState?: DisclosureState }) {
 
 function WorldCharacterList(props: { onItemClick?: undefined | (() => void) }) {
   const world = useWorldState()
-  const { characterId } = useParams()
-
-  const currentCharacter = characterId
-    ? world.characters.find((character) => character.id === characterId)
-    : world.characters[0]
-
+  const deletedCharacters = DeleteCharacterAction.useSubmissions()
   return (
     <nav aria-label="Characters" className="flex flex-col">
-      {world.characters.map((character) => (
-        <NavLink
-          key={character.id}
-          to={`characters/${character.id}`}
-          className={buttonStyle({
-            borders: "left",
-            rounding: "none",
-            active: character.id === currentCharacter?.id,
-            justify: "start",
-            size: 10,
-            inactiveBorderColor: "transparent",
-            background: "none",
-          })}
-          onClick={props.onItemClick}
-          prefetch="intent"
-        >
-          {character.name}
-        </NavLink>
-      ))}
+      {world.characters.map((character) => {
+        const isDeleted = deletedCharacters.some(
+          (submission) => submission.id === character.id,
+        )
+        return (
+          <NavLink
+            key={character.id}
+            to={`characters/${character.id}`}
+            className={clsx(
+              buttonStyle({
+                borders: "left",
+                rounding: "none",
+                active: character.id === world.currentCharacter?.id,
+                justify: "start",
+                size: 10,
+                inactiveBorderColor: "transparent",
+                background: "none",
+              }),
+              isDeleted && "pointer-events-none opacity-50",
+            )}
+            onClick={props.onItemClick}
+            prefetch="intent"
+          >
+            {character.name} {isDeleted && <LoadingSpinner size={6} />}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }

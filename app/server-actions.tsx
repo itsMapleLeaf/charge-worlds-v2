@@ -1,8 +1,6 @@
 import { type TypedResponse } from "@remix-run/node"
-import { useFetcher } from "@remix-run/react"
-import { useMemo } from "react"
+import { useFetcher, useFetchers } from "@remix-run/react"
 import { type MaybePromise } from "./helpers/types"
-import { useLatestRef } from "./helpers/use-latest-ref"
 
 declare global {
   var __serverActionRegistry:
@@ -26,24 +24,31 @@ export function serverAction<Input, Return>(
   ) => MaybePromise<TypedResponse<Return>>,
 ) {
   registry.set(actionName, callback)
+  const actionUrl = `/server-actions/${actionName}`
 
   return {
     useFetcher: function useServerActionFetcher() {
       const fetcher = useFetcher<Return>()
-      const fetcherRef = useLatestRef(fetcher)
-      return useMemo(
-        () => ({
-          ...fetcher,
-          submit: (data: Input) => {
-            fetcherRef.current.submit(
-              { data: JSON.stringify(data) },
-              { method: "post", action: `/server-actions/${actionName}` },
-            )
-          },
-          Form: undefined,
-        }),
-        [fetcher, fetcherRef],
-      )
+      return {
+        ...fetcher,
+        Form: undefined,
+        submit: (data: Input) => {
+          fetcher.submit(
+            { data: JSON.stringify(data) },
+            { method: "post", action: actionUrl },
+          )
+        },
+      }
+    },
+
+    useSubmissions: function useServerActionSubmissions() {
+      const fetchers = useFetchers()
+      return fetchers.flatMap((fetcher) => {
+        if (fetcher.submission?.action !== actionUrl) return []
+        return JSON.parse(
+          fetcher.submission.formData.get("data") as string,
+        ) as Input
+      })
     },
   }
 }

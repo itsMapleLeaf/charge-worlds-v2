@@ -1,6 +1,6 @@
 import { useParams } from "@remix-run/react"
 import type PusherClient from "pusher-js"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { db } from "./db.server"
 import { raise } from "./helpers/errors"
 import { notFound } from "./helpers/responses.server"
@@ -79,24 +79,43 @@ export function sendWorldPatch(worldId: string, patch: Patch<WorldState>) {
   return worldChannel(worldId).sendPatch(patch)
 }
 
-const Context = createContext<WorldState | undefined>(undefined)
-
-export function WorldStateProvider(props: {
-  initialState: WorldState
-  children: React.ReactNode
-}) {
-  const [state, setState] = useState(props.initialState)
-  const { worldId } = useParams()
+function useWorldStateProvider(options: { initialState: WorldState }) {
+  const [state, setState] = useState(options.initialState)
   const pusher = usePusher()
+  const params = useParams()
 
   useEffect(() => {
     if (!pusher) return
-    return worldChannel(worldId!).onPatch(pusher, (patch) => {
+    return worldChannel(params.worldId!).onPatch(pusher, (patch) => {
       setState((state) => applyPatch(state, patch))
     })
-  }, [pusher, worldId])
+  }, [pusher, params.worldId])
 
-  return <Context.Provider {...props} value={state} />
+  const currentCharacter = params.characterId
+    ? state.characters.find((character) => character.id === params.characterId)
+    : state.characters[0]
+
+  return useMemo(
+    () => ({ ...state, currentCharacter }),
+    [currentCharacter, state],
+  )
+}
+
+const Context = createContext<
+  ReturnType<typeof useWorldStateProvider> | undefined
+>(undefined)
+
+export function WorldStateProvider({
+  children,
+  ...options
+}: Parameters<typeof useWorldStateProvider>[0] & {
+  children: React.ReactNode
+}) {
+  return (
+    <Context.Provider value={useWorldStateProvider(options)}>
+      {children}
+    </Context.Provider>
+  )
 }
 
 export function useWorldState() {
