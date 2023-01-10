@@ -42,7 +42,7 @@ export const FieldSelect = createFieldInput(
   (props: ComponentPropsWithoutRef<"select">) => <select {...props} />,
 )
 
-function createFieldInput<Props>(
+export function createFieldInput<Props>(
   name: string,
   render: (props: Props & { id?: string | undefined }) => ReactNode,
 ) {

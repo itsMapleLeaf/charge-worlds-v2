@@ -32,6 +32,7 @@ specifiers:
   pusher-js: ^8.0.0
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-expanding-textarea: ^2.3.6
   remix-auth: ^3.4.0
   remix-auth-discord: ^1.1.2
   tailwindcss: ^3.2.4
@@ -55,6 +56,7 @@ dependencies:
   pusher-js: 8.0.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  react-expanding-textarea: 2.3.6_react@18.2.0
   remix-auth: 3.4.0_@remix-run+react@1.9.0
   remix-auth-discord: 1.1.2_@remix-run+react@1.9.0
   zod: 3.20.2
@@ -4605,6 +4607,10 @@ packages:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
     dev: true
 
+  /fast-shallow-equal/1.0.0:
+    resolution: {integrity: sha512-HPtaa38cPgWvaCFmRNhlc6NG7pv6NUHqjPgVAkWGoB9mQMwYB27/K0CvOM5Czy+qpT3e8XJ6Q4aPAnzpNpzNaw==}
+    dev: false
+
   /fastq/1.14.0:
     resolution: {integrity: sha512-eR2D+V9/ExcbF9ls441yIuN6TI2ED1Y2ZcA5BmMtJsOkWOFRJQ0Jt0g1UwqXJJVAb+V+umH5Dfr8oh4EVP7VVg==}
     dependencies:
@@ -7428,6 +7434,17 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
+  /react-expanding-textarea/2.3.6_react@18.2.0:
+    resolution: {integrity: sha512-LjkyZv1LilMlt+6/yYn9F1FlcK8iQU96myeq6PwU/a7IaQMkSwndSB1SAhMKgxSrUR71VbqsqnAHQ741WbAU/Q==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      fast-shallow-equal: 1.0.0
+      react: 18.2.0
+      react-with-forwarded-ref: 0.3.5_react@18.2.0
+      tslib: 2.4.1
+    dev: false
+
   /react-is/16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: true
@@ -7457,6 +7474,15 @@ packages:
     dependencies:
       '@remix-run/router': 1.1.0
       react: 18.2.0
+    dev: false
+
+  /react-with-forwarded-ref/0.3.5_react@18.2.0:
+    resolution: {integrity: sha512-BJK4q0Nvqg4AFwc+LV+PZZb2nxS1ZqQlS9hY14TdIyg7Lapzirk/V/TtbYjPFSsm/fGm0wC4tsgI1IDhxSVVSQ==}
+    peerDependencies:
+      react: ^16.3.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+      tslib: 2.4.1
     dev: false
 
   /react/18.2.0:
@@ -8522,7 +8548,6 @@ packages:
 
   /tslib/2.4.1:
     resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
-    dev: true
 
   /tsutils/3.21.0_typescript@4.9.4:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}

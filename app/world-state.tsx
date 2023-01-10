@@ -1,6 +1,7 @@
 import { useParams } from "@remix-run/react"
 import type PusherClient from "pusher-js"
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { UpdateCharacterAction } from "./characters/update-character"
 import { db } from "./db.server"
 import { raise } from "./helpers/errors"
 import { notFound } from "./helpers/responses.server"
@@ -32,7 +33,13 @@ export async function loadWorldState(
       name: true,
       characters: {
         where: isAdmin ? {} : { hidden: true },
-        select: { id: true, name: true, condition: true, imageUrl: true },
+        select: {
+          id: true,
+          name: true,
+          condition: true,
+          imageUrl: true,
+          stress: true,
+        },
       },
     },
   })
@@ -83,6 +90,7 @@ function useWorldStateProvider(options: { initialState: WorldState }) {
   const [state, setState] = useState(options.initialState)
   const pusher = usePusher()
   const params = useParams()
+  const updatingCharacters = UpdateCharacterAction.useSubmissions()
 
   useEffect(() => {
     if (!pusher) return
@@ -91,14 +99,26 @@ function useWorldStateProvider(options: { initialState: WorldState }) {
     })
   }, [pusher, params.worldId])
 
-  const currentCharacter = params.characterId
-    ? state.characters.find((character) => character.id === params.characterId)
-    : state.characters[0]
+  return useMemo(() => {
+    const updatingCharactersById = new Map(
+      updatingCharacters.map((character) => [character.id, character.data]),
+    )
 
-  return useMemo(
-    () => ({ ...state, currentCharacter }),
-    [currentCharacter, state],
-  )
+    const characters = state.characters.map((character) => {
+      const updateData = updatingCharactersById.get(character.id)
+      return updateData ? { ...character, ...updateData } : character
+    })
+
+    const currentCharacter = params.characterId
+      ? characters.find((character) => character.id === params.characterId)
+      : characters[0]
+
+    return {
+      ...state,
+      characters,
+      currentCharacter,
+    }
+  }, [params.characterId, state, updatingCharacters])
 }
 
 const Context = createContext<

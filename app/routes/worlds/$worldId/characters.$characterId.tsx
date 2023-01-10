@@ -1,17 +1,38 @@
 import { useParams } from "@remix-run/react"
 import clsx from "clsx"
 import { ImagePlus, Trash } from "lucide-react"
+import { type ComponentPropsWithoutRef } from "react"
 import { DeleteCharacterButton } from "~/characters/delete-character"
+import {
+  UpdateCharacterAction,
+  type UpdateCharacterData,
+} from "~/characters/update-character"
 import { ClockInput } from "~/ui/clock-input"
+import { DebouncedInput, DebouncedTextArea } from "~/ui/debounced-input"
 import { EmptyState } from "~/ui/empty-state"
-import { Field, FieldInput, FieldLabel, FieldLabelText } from "~/ui/field"
+import { createFieldInput, Field, FieldLabel, FieldLabelText } from "~/ui/field"
 import { NotFoundMessage } from "~/ui/not-found-message"
 import { buttonStyle, inputStyle, panelStyle } from "~/ui/styles"
 import { useWorldState } from "~/world-state"
 
+const DebouncedFieldInput = createFieldInput(
+  "DebouncedFieldInput",
+  (props: ComponentPropsWithoutRef<typeof DebouncedInput>) => (
+    <DebouncedInput {...props} />
+  ),
+)
+
+const DebouncedFieldTextArea = createFieldInput(
+  "DebouncedFieldTextArea",
+  (props: ComponentPropsWithoutRef<typeof DebouncedTextArea>) => (
+    <DebouncedTextArea {...props} />
+  ),
+)
+
 export default function CharacterPage() {
   const world = useWorldState()
   const { characterId } = useParams()
+  const updateCharacterFetcher = UpdateCharacterAction.useFetcher()
 
   if (!world.characters.length) {
     return (
@@ -27,6 +48,10 @@ export default function CharacterPage() {
 
   if (!character) {
     return <NotFoundMessage />
+  }
+
+  const updateCharacter = (data: UpdateCharacterData) => {
+    updateCharacterFetcher.submit({ id: character.id, data })
   }
 
   return (
@@ -59,19 +84,23 @@ export default function CharacterPage() {
           <div className="flex flex-col justify-between gap-4">
             <Field>
               <FieldLabel>Name</FieldLabel>
-              <FieldInput
+              <DebouncedFieldInput
                 className={inputStyle()}
                 placeholder="What should we call you?"
-                defaultValue={character.name}
+                value={character.name}
+                onChangeValue={(name) => updateCharacter({ name })}
+                debouncePeriod={500}
               />
             </Field>
             <Field>
               <FieldLabel>Reference Image</FieldLabel>
-              <FieldInput
+              <DebouncedFieldInput
                 className={inputStyle()}
                 type="url"
                 placeholder="https://web.site/image.png"
-                defaultValue={character.imageUrl ?? ""}
+                value={character.imageUrl ?? ""}
+                onChangeValue={(imageUrl) => updateCharacter({ imageUrl })}
+                debouncePeriod={500}
               />
             </Field>
             <Field>
@@ -91,15 +120,23 @@ export default function CharacterPage() {
             >
               <h3 className="text-xl font-light leading-none">Stress</h3>
               <div className="mx-auto w-full max-w-24">
-                <ClockInput value={2} max={4} onChange={() => {}} />
+                <ClockInput
+                  value={character.stress}
+                  max={4}
+                  onChange={(stress) => {
+                    updateCharacter({ stress })
+                  }}
+                />
               </div>
             </section>
             <Field>
               <FieldLabel>Condition</FieldLabel>
-              <FieldInput
+              <DebouncedFieldTextArea
                 className={inputStyle()}
                 placeholder="How are you doing?"
-                defaultValue={character.condition}
+                value={character.condition}
+                onChangeValue={(condition) => updateCharacter({ condition })}
+                debouncePeriod={500}
               />
             </Field>
           </div>

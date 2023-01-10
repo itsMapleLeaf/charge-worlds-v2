@@ -5,6 +5,9 @@ export type Patch<T> = T extends ReadonlyArray<infer V>
       $append?: V[]
       $prepend?: V[]
       $removeWhere?: V extends object ? Partial<V> : never
+      $mergeWhere?: V extends object
+        ? { match: Partial<V>; properties: Partial<V> }
+        : never
       [index: number]: Patch<V>
     }
   : T extends object
@@ -18,7 +21,7 @@ export function applyPatch<T>(input: T, patch: Patch<Nullish<{}>>): T {
   if (Array.isArray(input)) {
     return applyArrayPatch(input, patch) as T
   }
-  if (typeof input === "object") {
+  if (isObject(input)) {
     return applyObjectPatch(input, patch) as T
   }
   if (typeof patch === typeof input) {
@@ -39,11 +42,7 @@ function applyArrayPatch<T>(input: T[], patch: Patch<Nullish<{}>>): T[] {
   if ("$prepend" in patch && Array.isArray(patch.$prepend)) {
     output.unshift(...patch.$prepend)
   }
-  if (
-    "$removeWhere" in patch &&
-    typeof patch.$removeWhere === "object" &&
-    patch.$removeWhere !== null
-  ) {
+  if ("$removeWhere" in patch && isObject(patch.$removeWhere)) {
     const removeWhere = patch.$removeWhere
     output = output.filter((item) => {
       for (const [key, value] of Object.entries(removeWhere)) {
@@ -55,11 +54,31 @@ function applyArrayPatch<T>(input: T[], patch: Patch<Nullish<{}>>): T[] {
     })
   }
 
+  if (
+    "$mergeWhere" in patch &&
+    isObject(patch.$mergeWhere) &&
+    "match" in patch.$mergeWhere &&
+    isObject(patch.$mergeWhere.match) &&
+    "properties" in patch.$mergeWhere &&
+    isObject(patch.$mergeWhere.properties)
+  ) {
+    const { match, properties } = patch.$mergeWhere
+    output = output.map((item) => {
+      for (const [key, value] of Object.entries(match)) {
+        if (item[key as keyof T] !== value) {
+          return item
+        }
+      }
+      return { ...item, ...properties }
+    })
+  }
+
   for (const [index, item] of Object.entries(patch)) {
     if (
       index === "$append" ||
       index === "$prepend" ||
-      index === "$removeWhere"
+      index === "$removeWhere" ||
+      index === "$mergeWhere"
     ) {
       continue
     }
@@ -89,4 +108,8 @@ function applyObjectPatch<T>(
   }
 
   return output
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === "object" && value !== null
 }
