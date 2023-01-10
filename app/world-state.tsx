@@ -40,6 +40,9 @@ export async function loadWorldState(
           imageUrl: true,
           stress: true,
         },
+        orderBy: {
+          id: "asc",
+        },
       },
     },
   })
