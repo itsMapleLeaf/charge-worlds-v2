@@ -4,8 +4,8 @@ import {
   useFetcher,
   useLoaderData,
   useTransition,
-  type CatchBoundaryComponent,
 } from "@remix-run/react"
+import { type CatchBoundaryComponent } from "@remix-run/react/dist/routeModules"
 import clsx from "clsx"
 import { Wand2 } from "lucide-react"
 import { findSessionUser } from "~/auth.server"

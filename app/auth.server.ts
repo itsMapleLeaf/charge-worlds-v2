@@ -41,7 +41,7 @@ authenticator.use(
         name: profile.displayName,
         avatarUrl: avatarId
           ? `https://cdn.discordapp.com/avatars/${profile.id}/${avatarId}.png`
-          : undefined,
+          : null,
         sessionId,
       }
 

@@ -2,8 +2,8 @@ import { type LoaderArgs, type MetaFunction } from "@remix-run/node"
 import {
   NavLink,
   Outlet,
+  type ShouldRevalidateFunction,
   useLoaderData,
-  type ShouldReloadFunction,
 } from "@remix-run/react"
 import {
   Dialog,
@@ -51,7 +51,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return { user, world }
 }
 
-export const unstable_shouldReload: ShouldReloadFunction = () => false
+export const shouldRevalidate: ShouldRevalidateFunction = () => false
 
 export const meta: MetaFunction<typeof loader> = ({ data }) =>
   getAppMeta({ title: data.world.name })

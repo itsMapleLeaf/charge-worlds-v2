@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { raise } from "~/helpers/errors"
 import { type Nullish } from "~/helpers/types"
 
 const fullTurn = Math.PI * 2
@@ -106,7 +107,9 @@ function useRect(
     const element = ref instanceof Element ? ref : ref?.current
     if (!element) return
 
-    const observer = new ResizeObserver(([entry]) => setRect(entry.contentRect))
+    const observer = new ResizeObserver(([entry]) =>
+      setRect(entry?.contentRect ?? raise("ResizeObserver has no entry")),
+    )
     observer.observe(element)
     return () => observer.disconnect()
   }, [ref])
